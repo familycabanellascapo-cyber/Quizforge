@@ -281,6 +281,7 @@ export default function Home() {
               difficulty={difficulty}
               onDifficultyChange={setDifficulty}
               onUpgradeClick={() => triggerPayment('upload')}
+              unlimited={isUnlimited(profile)}
             />
             {error && (
               <div style={{
@@ -301,8 +302,8 @@ export default function Home() {
         {screen === 'results' && data && (
           <div style={{ paddingTop: '80px' }}>
             {data.type === 'theory'
-              ? <TheoryResults data={data} onPaywall={() => triggerPayment('flashcard')} />
-              : <PracticalResults data={data} onPaywall={() => triggerPayment('flashcard')} />
+              ? <TheoryResults data={data} onPaywall={() => triggerPayment('flashcard')} unlimited={isUnlimited(profile)} />
+              : <PracticalResults data={data} onPaywall={() => triggerPayment('flashcard')} unlimited={isUnlimited(profile)} />
             }
             <div style={{ textAlign: 'center', paddingBottom: '48px' }}>
               <button

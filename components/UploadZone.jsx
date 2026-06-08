@@ -13,14 +13,14 @@ const practicalSubjects = [
 ]
 const DIFFICULTIES = ['Baja', 'Media', 'Alta']
 
-export default function UploadZone({ onUpload, uploadsUsed = 0, freeLimit = 3, onUpgradeClick }) {
+export default function UploadZone({ onUpload, uploadsUsed = 0, freeLimit = 3, difficulty, onDifficultyChange, onUpgradeClick, unlimited = false }) {
   const [dragging, setDragging] = useState(false)
   const [error, setError] = useState('')
   const [fileName, setFileName] = useState('')
   const inputRef = useRef(null)
 
   const remaining = freeLimit - uploadsUsed
-  const atLimit = remaining <= 0
+  const atLimit = !unlimited && remaining <= 0
 
   function validateAndSubmit(file) {
     setError('')
@@ -99,27 +99,32 @@ export default function UploadZone({ onUpload, uploadsUsed = 0, freeLimit = 3, o
           </div>
         </div>
 
-        {/* Difficulty selector — Premium locked */}
+        {/* Difficulty selector */}
         <div style={{ marginBottom: '28px', animation: 'fadeUp 0.6s ease 0.25s both' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px', justifyContent: 'center' }}>
             <span style={{ color: 'var(--text-2)', fontSize: '13px' }}>Dificultad de preguntas</span>
-            <span style={{
-              background: 'rgba(232,168,56,0.1)', border: '1px solid rgba(232,168,56,0.25)',
-              borderRadius: '4px', padding: '2px 8px', fontSize: '11px', color: 'var(--gold)',
-            }}>🔒 Premium</span>
+            {!unlimited && (
+              <span style={{
+                background: 'rgba(232,168,56,0.1)', border: '1px solid rgba(232,168,56,0.25)',
+                borderRadius: '4px', padding: '2px 8px', fontSize: '11px', color: 'var(--gold)',
+              }}>🔒 Premium</span>
+            )}
           </div>
           <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
             {DIFFICULTIES.map(d => (
               <button
                 key={d}
-                onClick={onUpgradeClick}
+                onClick={() => unlimited ? onDifficultyChange?.(d) : onUpgradeClick()}
                 style={{
                   padding: '8px 20px', borderRadius: '8px',
-                  background: 'var(--surface)', border: '1px solid var(--border)',
-                  color: 'var(--text-3)', fontSize: '13px', cursor: 'pointer',
-                  fontFamily: 'DM Sans, sans-serif', opacity: 0.55,
+                  background: unlimited && difficulty === d ? 'var(--accent)' : 'var(--surface)',
+                  border: `1px solid ${unlimited && difficulty === d ? 'var(--accent-bright)' : 'var(--border)'}`,
+                  color: unlimited && difficulty === d ? 'white' : unlimited ? 'var(--text-2)' : 'var(--text-3)',
+                  fontSize: '13px', cursor: 'pointer',
+                  fontFamily: 'DM Sans, sans-serif', opacity: unlimited ? 1 : 0.55,
+                  transition: 'all 0.2s ease',
                 }}
-              >🔒 {d}</button>
+              >{unlimited ? d : `🔒 ${d}`}</button>
             ))}
           </div>
         </div>
@@ -192,7 +197,9 @@ export default function UploadZone({ onUpload, uploadsUsed = 0, freeLimit = 3, o
             <p style={{ color: 'var(--text-2)', fontSize: '14px', marginBottom: '24px' }}>
               {atLimit
                 ? 'Actualiza tu plan para seguir subiendo PDFs'
-                : `o haz clic para seleccionar — PDF, máx. 10MB · ${remaining} restante${remaining !== 1 ? 's' : ''}`
+                : unlimited
+                  ? 'o haz clic para seleccionar — PDF, máx. 10MB · ∞ ilimitados'
+                  : `o haz clic para seleccionar — PDF, máx. 10MB · ${remaining} restante${remaining !== 1 ? 's' : ''}`
               }
             </p>
 

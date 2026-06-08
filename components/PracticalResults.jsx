@@ -139,7 +139,49 @@ function MiniTestQuestion({ q, idx }) {
   )
 }
 
-function FlashCard({ card, index, onPaywall }) {
+function FlashCard({ card, index, onPaywall, unlimited }) {
+  const [revealed, setRevealed] = useState(false)
+
+  if (unlimited) {
+    return (
+      <div style={{
+        background: 'var(--card)', border: `1px solid ${revealed ? 'rgba(16,185,129,0.35)' : 'var(--border)'}`,
+        borderRadius: '14px', padding: '20px 22px', marginBottom: '12px',
+        transition: 'border-color 0.2s ease', display: 'flex', flexDirection: 'column', gap: '10px',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '11px', color: 'var(--text-3)' }}>
+            Flashcard #{index + 1}
+          </span>
+          <span style={{
+            background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.25)',
+            borderRadius: '6px', padding: '2px 8px', fontSize: '11px', color: 'var(--green)',
+          }}>👑 Admin</span>
+        </div>
+        <p style={{ color: 'var(--text)', fontSize: '14px', fontWeight: 500, lineHeight: 1.6 }}>{card.front}</p>
+        {revealed ? (
+          <div style={{
+            background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.25)',
+            borderRadius: '8px', padding: '12px 16px', fontSize: '14px', color: 'var(--green)',
+            lineHeight: 1.6, animation: 'fadeUp 0.2s ease both',
+          }}>
+            ✓ {card.back}
+          </div>
+        ) : (
+          <button
+            onClick={() => setRevealed(true)}
+            style={{
+              background: 'rgba(16,185,129,0.07)', border: '1px solid rgba(16,185,129,0.2)',
+              borderRadius: '8px', padding: '10px 14px', cursor: 'pointer',
+              color: 'var(--green)', fontSize: '13px', fontFamily: 'DM Sans, sans-serif',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+            }}
+          >▶ Ver respuesta</button>
+        )}
+      </div>
+    )
+  }
+
   return (
     <div
       onClick={onPaywall}
@@ -172,7 +214,7 @@ function FlashCard({ card, index, onPaywall }) {
   )
 }
 
-export default function PracticalResults({ data, onPaywall }) {
+export default function PracticalResults({ data, onPaywall, unlimited = false }) {
   const [tab, setTab] = useState('formulas')
 
   const tabs = [
@@ -275,24 +317,27 @@ export default function PracticalResults({ data, onPaywall }) {
       {tab === 'flashcards' && (
         <div style={{ animation: 'fadeUp 0.3s ease both' }}>
           <div style={{
-            background: 'rgba(34,211,238,0.05)', border: '1px solid rgba(34,211,238,0.18)',
+            background: unlimited ? 'rgba(16,185,129,0.06)' : 'rgba(34,211,238,0.05)',
+            border: `1px solid ${unlimited ? 'rgba(16,185,129,0.2)' : 'rgba(34,211,238,0.18)'}`,
             borderRadius: '12px', padding: '12px 16px', marginBottom: '20px',
             display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px',
           }}>
             <span style={{ fontSize: '13px', color: 'var(--text-2)' }}>
-              🃏 {data.flashcards?.length ?? 0} flashcards generadas — actualiza para estudiar con ellas
+              🃏 {data.flashcards?.length ?? 0} flashcards generadas{unlimited ? ' — haz clic en cada una para ver la respuesta' : ' — actualiza para estudiar con ellas'}
             </span>
-            <button
-              onClick={onPaywall}
-              style={{
-                background: 'linear-gradient(135deg, var(--accent), var(--cyan))',
-                border: 'none', borderRadius: '8px', padding: '6px 14px',
-                color: 'white', fontSize: '12px', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif',
-              }}
-            >Desbloquear →</button>
+            {!unlimited && (
+              <button
+                onClick={onPaywall}
+                style={{
+                  background: 'linear-gradient(135deg, var(--accent), var(--cyan))',
+                  border: 'none', borderRadius: '8px', padding: '6px 14px',
+                  color: 'white', fontSize: '12px', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif',
+                }}
+              >Desbloquear →</button>
+            )}
           </div>
           {data.flashcards?.map((card, i) => (
-            <FlashCard key={i} card={card} index={i} onPaywall={onPaywall} />
+            <FlashCard key={i} card={card} index={i} onPaywall={onPaywall} unlimited={unlimited} />
           ))}
         </div>
       )}
