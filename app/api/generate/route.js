@@ -2,7 +2,11 @@ import { NextResponse } from 'next/server'
 import OpenAI from 'openai'
 import pdfParse from 'pdf-parse'
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+let openai = null
+function getOpenAI() {
+  if (!openai) openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+  return openai
+}
 
 const PRACTICAL_KEYWORDS = [
   'derivada', 'integral', 'límite', 'ecuación', 'función', 'cálculo',
@@ -183,7 +187,7 @@ export async function POST(request) {
     const type = detectType(text)
     const prompt = type === 'practical' ? PRACTICAL_PROMPT(text) : THEORY_PROMPT(text)
 
-    const completion = await openai.chat.completions.create({
+    const completion = await getOpenAI().chat.completions.create({
       model: 'gpt-4o',
       messages: [{ role: 'user', content: prompt }],
       response_format: { type: 'json_object' },
