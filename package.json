@@ -9,11 +9,13 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.102.0",
     "@supabase/supabase-js": "^2.45.0",
     "next": "^15.5.19",
     "openai": "^4.52.0",
     "pdf-parse": "^1.1.1",
     "react": "^19.2.7",
-    "react-dom": "^19.2.7"
+    "react-dom": "^19.2.7",
+    "twilio": "^6.0.2"
   }
 }
