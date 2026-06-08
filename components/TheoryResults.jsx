@@ -189,7 +189,6 @@ export default function TheoryResults({ data, onPaywall, unlimited = false }) {
 
   const tabs = [
     { id: 'summary',    label: '📋 Resumen' },
-    { id: 'timeline',   label: '📅 Línea del tiempo' },
     { id: 'questions',  label: '❓ Preguntas' },
     { id: 'flashcards', label: '🃏 Flashcards' },
   ]
@@ -216,9 +215,8 @@ export default function TheoryResults({ data, onPaywall, unlimited = false }) {
         </div>
       </div>
 
-      <div style={{
-        display: 'flex', gap: '4px', marginBottom: '24px',
-        background: 'var(--surface)', borderRadius: '12px', padding: '4px', overflowX: 'auto',
+      <div className="qf-tabs" style={{
+        marginBottom: '24px', background: 'var(--surface)', borderRadius: '12px', padding: '4px',
       }}>
         {tabs.map(t => (
           <button
@@ -255,39 +253,6 @@ export default function TheoryResults({ data, onPaywall, unlimited = false }) {
               ))}
             </div>
           </div>
-        </div>
-      )}
-
-      {tab === 'timeline' && (
-        <div style={{ animation: 'fadeUp 0.3s ease both' }}>
-          {data.timeline && data.timeline.length > 0 ? (
-            <div style={{ position: 'relative', paddingLeft: '28px' }}>
-              <div style={{
-                position: 'absolute', left: '9px', top: '6px', bottom: '6px', width: '2px',
-                background: 'linear-gradient(to bottom, var(--accent) 0%, transparent 100%)',
-              }} />
-              {data.timeline.map((item, i) => (
-                <div key={i} style={{ position: 'relative', marginBottom: '28px' }}>
-                  <div style={{
-                    position: 'absolute', left: '-22px', top: '4px', width: '12px', height: '12px',
-                    borderRadius: '50%', background: 'var(--accent)', border: '2px solid var(--accent-bright)',
-                    boxShadow: '0 0 8px rgba(123,94,167,0.55)',
-                  }} />
-                  <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '12px', color: 'var(--gold)', marginBottom: '5px' }}>
-                    {item.year}
-                  </div>
-                  <p style={{ color: 'var(--text-2)', fontSize: '14px', lineHeight: 1.7 }}>{item.event}</p>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div style={{
-              background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '16px',
-              padding: '48px', textAlign: 'center', color: 'var(--text-2)', fontSize: '15px',
-            }}>
-              No hay línea del tiempo disponible para este tema.
-            </div>
-          )}
         </div>
       )}
 

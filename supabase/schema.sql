@@ -105,7 +105,17 @@ CREATE TRIGGER profiles_updated_at
   BEFORE UPDATE ON public.profiles
   FOR EACH ROW EXECUTE FUNCTION public.handle_updated_at();
 
--- 7. CUENTA ADMIN (por si el usuario ya existe en auth.users)
+-- 7. COLUMNAS STRIPE (migración — ejecutar si ya tenías la tabla)
+-- ================================================================
+ALTER TABLE public.profiles
+  ADD COLUMN IF NOT EXISTS stripe_customer_id     TEXT    DEFAULT NULL,
+  ADD COLUMN IF NOT EXISTS stripe_subscription_id TEXT    DEFAULT NULL,
+  ADD COLUMN IF NOT EXISTS subscription_ends_at   TIMESTAMPTZ DEFAULT NULL,
+  ADD COLUMN IF NOT EXISTS stripe_status          TEXT    DEFAULT NULL;
+
+CREATE INDEX IF NOT EXISTS profiles_stripe_customer_idx ON public.profiles(stripe_customer_id);
+
+-- 8. CUENTA ADMIN (por si el usuario ya existe en auth.users)
 -- ================================================================
 INSERT INTO public.profiles (id, email, is_admin, plan)
 SELECT id, email, TRUE, 'premium'

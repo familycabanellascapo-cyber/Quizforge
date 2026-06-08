@@ -3,208 +3,187 @@
 const PLANS = [
   {
     id: 'free',
-    name: 'Gratis',
+    name: 'GRATIS',
     price: '0€',
     period: '',
-    color: 'var(--text-2)',
+    colorVar: 'var(--text-2)',
     borderColor: 'var(--border)',
     bg: 'var(--card)',
-    features: [
-      '3 PDFs por semana (se renuevan cada lunes)',
-      '10 preguntas por PDF',
-      'Test tipo test + hipótesis',
-      'Línea del tiempo automática',
-      'Problemas con solución paso a paso',
-    ],
-    locked: [
-      'Flashcards interactivas',
-      'Dificultad personalizada',
-      'Más de 10 preguntas por PDF',
-    ],
+    features: ['3 PDFs por semana', '10 preguntas por PDF', 'Test + hipótesis', 'Problemas paso a paso'],
+    locked: ['Flashcards', 'Dificultad personalizada', '+10 preguntas'],
     cta: 'Continuar gratis',
     stripeUrl: null,
   },
   {
     id: 'premium',
-    name: 'Premium',
+    name: 'PREMIUM',
     price: '5,99€',
     period: '/mes',
-    color: 'var(--accent-bright)',
-    borderColor: 'rgba(167,139,218,0.55)',
+    colorVar: 'var(--accent-bright)',
+    borderColor: 'rgba(167,139,218,0.5)',
     bg: 'rgba(123,94,167,0.08)',
     popular: true,
-    features: [
-      'PDFs ilimitados (sin límite semanal)',
-      'Elige entre 10 y 30 preguntas por PDF',
-      'Flashcards interactivas desbloqueadas',
-      'Dificultad personalizada (Baja / Media / Alta)',
-      'Historial guardado en la nube',
-    ],
+    features: ['PDFs ilimitados', '10–30 preguntas/PDF', 'Flashcards interactivas', 'Dificultad personalizada'],
     locked: [],
-    cta: 'Empezar Premium →',
+    cta: 'Empezar Premium',
     stripeUrl: 'https://buy.stripe.com/test_4gMdR80BafLcfi91Di6Zy03',
   },
   {
     id: 'premium_annual',
-    name: 'Premium Anual',
+    name: 'PREM. ANUAL',
     price: '39,99€',
     period: '/año',
-    color: 'var(--cyan)',
-    borderColor: 'rgba(34,211,238,0.35)',
-    bg: 'rgba(34,211,238,0.05)',
-    badge: '🏆 Ahorra 31€',
-    features: [
-      'Todo lo incluido en Premium',
-      'Facturación anual — ahorra 31€',
-      'Acceso anticipado a nuevas funciones',
-    ],
+    colorVar: 'var(--cyan)',
+    borderColor: 'rgba(34,211,238,0.3)',
+    bg: 'rgba(34,211,238,0.04)',
+    badge: 'Ahorra 31€',
+    features: ['Todo Premium', 'Facturación anual', 'Acceso anticipado'],
     locked: [],
-    cta: 'Empezar Premium Anual →',
+    cta: 'Empezar Anual',
     stripeUrl: 'https://buy.stripe.com/test_14A6oGes08iK6LD6XC6Zy05',
   },
   {
     id: 'teams',
-    name: 'Teams',
+    name: 'TEAMS',
     price: '59,99€',
     period: '/mes',
-    color: 'var(--gold)',
-    borderColor: 'rgba(232,168,56,0.35)',
-    bg: 'rgba(232,168,56,0.05)',
-    features: [
-      'Todo lo incluido en Premium',
-      'Hasta 10 miembros en el equipo',
-      'Panel de administración de equipo',
-      'Analytics de uso del equipo',
-      'Soporte prioritario',
-    ],
+    colorVar: 'var(--gold)',
+    borderColor: 'rgba(232,168,56,0.3)',
+    bg: 'rgba(232,168,56,0.04)',
+    features: ['Todo Premium', 'Hasta 10 miembros', 'Panel de equipo', 'Soporte prioritario'],
     locked: [],
-    cta: 'Empezar Teams →',
+    cta: 'Empezar Teams',
     stripeUrl: 'https://buy.stripe.com/test_aFa7sKgA8gPg7PHeq46Zy04',
   },
   {
     id: 'teams_annual',
-    name: 'Teams Anual',
+    name: 'TEAMS ANUAL',
     price: '349,99€',
     period: '/año',
-    color: 'var(--green)',
-    borderColor: 'rgba(16,185,129,0.35)',
+    colorVar: 'var(--green)',
+    borderColor: 'rgba(16,185,129,0.3)',
     bg: 'rgba(16,185,129,0.04)',
-    badge: '💰 Ahorra 370€',
-    features: [
-      'Todo lo incluido en Teams',
-      'Facturación anual — ahorra 370€',
-      'Soporte dedicado 24/7',
-      'Onboarding personalizado para el equipo',
-    ],
+    badge: 'Ahorra 370€',
+    features: ['Todo Teams', 'Facturación anual', 'Soporte 24/7'],
     locked: [],
-    cta: 'Empezar Teams Anual →',
+    cta: 'Teams Anual',
     stripeUrl: 'https://buy.stripe.com/test_bJe3cu1FebuWee55Ty6Zy06',
   },
 ]
 
-export default function PlanModal({ onSelectFree }) {
+function buildUrl(base, userId, email) {
+  if (!base) return null
+  const p = new URLSearchParams()
+  if (userId) p.set('client_reference_id', userId)
+  if (email)  p.set('prefilled_email', email)
+  const qs = p.toString()
+  return qs ? `${base}?${qs}` : base
+}
+
+export default function PlanModal({ onSelectFree, userId, userEmail }) {
   return (
-    <div style={{
-      position: 'fixed', inset: 0, zIndex: 1000,
-      background: 'rgba(7,7,14,0.93)', backdropFilter: 'blur(14px)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      padding: '20px', animation: 'fadeUp 0.25s ease both',
-    }}>
-      <div style={{
-        background: 'var(--surface)', border: '1px solid var(--border-bright)',
-        borderRadius: '24px', maxWidth: '1020px', width: '100%',
-        padding: '40px 32px 32px', maxHeight: '95vh', overflowY: 'auto',
-      }}>
-        <div style={{ textAlign: 'center', marginBottom: '36px' }}>
+    <div className="qf-modal-overlay">
+      <div className="qf-modal-box" style={{ maxWidth: '980px' }}>
+        <div style={{ textAlign: 'center', marginBottom: '28px' }}>
           <span style={{
-            fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '28px',
+            fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 'clamp(20px, 3vw, 26px)',
             background: 'linear-gradient(135deg, var(--accent-bright), var(--cyan))',
             WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text',
           }}>Elige tu plan</span>
-          <p style={{ color: 'var(--text-2)', fontSize: '15px', marginTop: '10px', lineHeight: 1.6 }}>
-            Puedes cambiar o cancelar en cualquier momento. Sin permanencia.
+          <p style={{ color: 'var(--text-2)', fontSize: '13px', marginTop: '8px' }}>
+            Sin permanencia · Cancela cuando quieras · PDFs gratuitos se renuevan cada semana
           </p>
         </div>
 
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))',
-          gap: '14px', marginBottom: '28px',
-        }}>
-          {PLANS.map(plan => (
-            <div key={plan.id} style={{
-              background: plan.bg,
-              border: `1px solid ${plan.borderColor}`,
-              borderRadius: '18px', padding: '22px 18px',
-              position: 'relative', display: 'flex', flexDirection: 'column', gap: '16px',
-            }}>
-              {/* Badge */}
-              {(plan.popular || plan.badge) && (
-                <div style={{
-                  position: 'absolute', top: '-13px', left: '50%', transform: 'translateX(-50%)',
-                  background: plan.popular
-                    ? 'linear-gradient(135deg, var(--accent), var(--accent-bright))'
-                    : 'var(--card)',
-                  border: plan.popular ? 'none' : '1px solid var(--border-bright)',
-                  borderRadius: '100px', padding: '4px 14px', fontSize: '11px',
-                  color: plan.popular ? 'white' : 'var(--text-2)',
-                  whiteSpace: 'nowrap', fontFamily: 'DM Sans, sans-serif',
-                }}>{plan.popular ? '✦ Más popular' : plan.badge}</div>
-              )}
+        <div className="plan-grid" style={{ paddingTop: '14px' }}>
+          {PLANS.map(plan => {
+            const url = buildUrl(plan.stripeUrl, userId, userEmail)
+            return (
+              <div key={plan.id} className="plan-card" style={{
+                background: plan.bg,
+                border: `1px solid ${plan.borderColor}`,
+                borderRadius: '16px', padding: '20px 14px 16px',
+                position: 'relative', display: 'flex', flexDirection: 'column', gap: '14px',
+                ...(plan.popular ? { boxShadow: '0 0 0 2px rgba(167,139,218,0.35)' } : {}),
+              }}>
+                {(plan.popular || plan.badge) && (
+                  <div style={{
+                    position: 'absolute', top: '-12px', left: '50%', transform: 'translateX(-50%)',
+                    background: plan.popular
+                      ? 'linear-gradient(135deg, var(--accent), var(--accent-bright))'
+                      : 'var(--surface)',
+                    border: plan.popular ? 'none' : '1px solid var(--border-bright)',
+                    borderRadius: '100px', padding: '3px 10px',
+                    fontSize: '10px', whiteSpace: 'nowrap',
+                    color: plan.popular ? 'white' : 'var(--text-2)',
+                    fontFamily: 'DM Sans, sans-serif',
+                  }}>
+                    {plan.popular ? '✦ Más popular' : plan.badge}
+                  </div>
+                )}
 
-              {/* Price */}
-              <div>
-                <p style={{ fontSize: '11px', color: 'var(--text-3)', marginBottom: '5px', fontFamily: 'DM Sans, sans-serif', letterSpacing: '0.05em' }}>
-                  {plan.name.toUpperCase()}
-                </p>
-                <div style={{ display: 'flex', alignItems: 'baseline', gap: '3px' }}>
-                  <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '26px', color: plan.color }}>
-                    {plan.price}
-                  </span>
-                  <span style={{ fontSize: '12px', color: 'var(--text-3)' }}>{plan.period}</span>
+                <div>
+                  <p style={{ fontSize: '10px', color: 'var(--text-3)', marginBottom: '5px', letterSpacing: '0.05em', fontFamily: 'DM Sans, sans-serif' }}>
+                    {plan.name}
+                  </p>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: '2px', flexWrap: 'wrap' }}>
+                    <span className="plan-price" style={{ color: plan.colorVar }}>{plan.price}</span>
+                    <span style={{ fontSize: '11px', color: 'var(--text-3)', flexShrink: 0 }}>{plan.period}</span>
+                  </div>
                 </div>
-              </div>
 
-              {/* Features */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '7px', flex: 1 }}>
-                {plan.features.map(f => (
-                  <div key={f} style={{ display: 'flex', gap: '7px', fontSize: '12px', color: 'var(--text-2)', alignItems: 'flex-start', lineHeight: 1.5 }}>
-                    <span style={{ color: 'var(--green)', flexShrink: 0, marginTop: '1px' }}>✓</span> {f}
-                  </div>
-                ))}
-                {plan.locked?.map(f => (
-                  <div key={f} style={{ display: 'flex', gap: '7px', fontSize: '12px', color: 'var(--text-3)', alignItems: 'flex-start', lineHeight: 1.5 }}>
-                    <span style={{ flexShrink: 0, marginTop: '1px' }}>✗</span> {f}
-                  </div>
-                ))}
-              </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', flex: 1 }}>
+                  {plan.features.map(f => (
+                    <div key={f} style={{ display: 'flex', gap: '6px', fontSize: '12px', color: 'var(--text-2)', alignItems: 'flex-start', lineHeight: 1.4 }}>
+                      <span style={{ color: 'var(--green)', flexShrink: 0 }}>✓</span>{f}
+                    </div>
+                  ))}
+                  {plan.locked?.map(f => (
+                    <div key={f} style={{ display: 'flex', gap: '6px', fontSize: '12px', color: 'var(--text-3)', alignItems: 'flex-start', lineHeight: 1.4 }}>
+                      <span style={{ flexShrink: 0 }}>✗</span>{f}
+                    </div>
+                  ))}
+                </div>
 
-              {/* CTA */}
-              <button
-                onClick={() => {
-                  if (plan.stripeUrl) window.open(plan.stripeUrl, '_blank')
-                  else onSelectFree()
-                }}
-                style={{
-                  background: plan.popular
-                    ? 'linear-gradient(135deg, var(--accent), var(--accent-bright))'
-                    : 'transparent',
-                  border: plan.popular ? 'none' : `1px solid ${plan.borderColor}`,
-                  borderRadius: '10px', padding: '11px 8px',
-                  color: plan.popular ? 'white' : plan.color,
-                  fontSize: '12px', fontWeight: 500, cursor: 'pointer',
-                  fontFamily: 'DM Sans, sans-serif', transition: 'opacity 0.2s',
-                  boxShadow: plan.popular ? '0 4px 18px rgba(123,94,167,0.35)' : 'none',
-                  lineHeight: 1.3,
-                }}
-              >{plan.cta}</button>
-            </div>
-          ))}
+                <button
+                  onClick={() => url ? window.open(url, '_blank') : onSelectFree()}
+                  style={{
+                    background: plan.popular
+                      ? 'linear-gradient(135deg, var(--accent), var(--accent-bright))'
+                      : 'transparent',
+                    border: plan.popular ? 'none' : `1px solid ${plan.borderColor}`,
+                    borderRadius: '9px', padding: '10px 6px',
+                    color: plan.popular ? 'white' : plan.colorVar,
+                    fontSize: '12px', fontWeight: 500, cursor: 'pointer',
+                    fontFamily: 'DM Sans, sans-serif', width: '100%',
+                    boxShadow: plan.popular ? '0 3px 14px rgba(123,94,167,0.3)' : 'none',
+                  }}
+                >{plan.cta}</button>
+              </div>
+            )
+          })}
         </div>
 
-        <p style={{ textAlign: 'center', color: 'var(--text-3)', fontSize: '12px', lineHeight: 1.7 }}>
-          Los PDFs del plan gratuito se renuevan cada semana · Sin permanencia · Cancela cuando quieras
-        </p>
+        {/* Test subscription */}
+        <div style={{
+          marginTop: '20px', padding: '14px 16px',
+          background: 'rgba(34,211,238,0.05)', border: '1px solid rgba(34,211,238,0.2)',
+          borderRadius: '12px', display: 'flex', alignItems: 'center',
+          justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px',
+        }}>
+          <div>
+            <p style={{ fontSize: '13px', color: 'var(--cyan)', fontWeight: 500, marginBottom: '2px' }}>🧪 Suscripción de prueba</p>
+            <p style={{ fontSize: '12px', color: 'var(--text-3)' }}>Activa Premium completo para testear todas las funciones</p>
+          </div>
+          <button
+            onClick={() => window.open(buildUrl('https://buy.stripe.com/test_bJe8wOabK8iKfi9eq46Zy07', userId, userEmail), '_blank')}
+            style={{
+              background: 'rgba(34,211,238,0.12)', border: '1px solid rgba(34,211,238,0.3)',
+              borderRadius: '8px', padding: '8px 14px', color: 'var(--cyan)',
+              fontSize: '12px', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif', whiteSpace: 'nowrap',
+            }}
+          >Activar prueba →</button>
+        </div>
       </div>
     </div>
   )

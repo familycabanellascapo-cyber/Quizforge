@@ -84,59 +84,29 @@ function UserAvatar({ user, onSignOut }) {
 function Navbar({ uploadsUsed, onUpgradeClick, user, onLoginClick, onSignOut, unlimited }) {
   const remaining = FREE_LIMIT - uploadsUsed
   return (
-    <nav style={{
-      position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100,
-      background: 'rgba(7,7,14,0.87)', backdropFilter: 'blur(18px)',
-      borderBottom: '1px solid var(--border)',
-      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-      padding: '0 32px', height: '64px', gap: '12px',
-    }}>
-      <span style={{
-        fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: '22px',
-        background: 'linear-gradient(135deg, var(--accent-bright), var(--cyan))',
-        WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text',
-        flexShrink: 0,
-      }}>QuizForge</span>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+    <nav className="qf-nav">
+      <span className="qf-nav-logo">QuizForge</span>
+      <div className="qf-nav-right">
         {unlimited ? (
-          <span style={{ fontSize: '12px', color: 'var(--green)', fontFamily: 'DM Sans, sans-serif', whiteSpace: 'nowrap' }}>
-            ∞ PDFs ilimitados
+          <span className="qf-nav-counter unlimited">
+            ∞<span className="qf-counter-label"> PDFs ∞</span>
           </span>
         ) : (
-          <span style={{ fontSize: '12px', color: remaining > 0 ? 'var(--text-2)' : 'var(--red)', fontFamily: 'DM Sans, sans-serif', whiteSpace: 'nowrap' }}>
-            {uploadsUsed}/{FREE_LIMIT} PDFs esta semana
+          <span className={`qf-nav-counter${remaining <= 0 ? ' over' : ''}`}>
+            {uploadsUsed}/{FREE_LIMIT}<span className="qf-counter-label"> PDFs</span>
           </span>
         )}
+
         {unlimited ? (
-          <span style={{
-            background: 'rgba(16,185,129,0.12)', border: '1px solid rgba(16,185,129,0.3)',
-            borderRadius: '100px', padding: '4px 13px', fontSize: '12px',
-            color: 'var(--green)', fontFamily: 'DM Sans, sans-serif', whiteSpace: 'nowrap',
-          }}>👑 Admin</span>
+          <span className="qf-badge-admin">👑 Admin</span>
         ) : (
-          <button
-            onClick={onUpgradeClick}
-            style={{
-              background: 'rgba(123,94,167,0.15)', border: '1px solid rgba(167,139,218,0.28)',
-              borderRadius: '100px', padding: '4px 13px', fontSize: '12px',
-              color: 'var(--accent-bright)', fontFamily: 'DM Sans, sans-serif',
-              cursor: 'pointer', whiteSpace: 'nowrap',
-            }}
-          >✦ Premium</button>
+          <button className="qf-badge-premium" onClick={onUpgradeClick}>✦ Premium</button>
         )}
+
         {user ? (
           <UserAvatar user={user} onSignOut={onSignOut} />
         ) : (
-          <button
-            onClick={onLoginClick}
-            style={{
-              background: 'linear-gradient(135deg, var(--accent), var(--accent-bright))',
-              border: 'none', borderRadius: '10px', padding: '8px 18px',
-              color: 'white', fontSize: '13px', fontWeight: 500,
-              fontFamily: 'DM Sans, sans-serif', cursor: 'pointer',
-              boxShadow: '0 2px 14px rgba(123,94,167,0.4)', whiteSpace: 'nowrap',
-            }}
-          >Iniciar sesión</button>
+          <button className="qf-btn-login" onClick={onLoginClick}>Acceder</button>
         )}
       </div>
     </nav>
@@ -355,11 +325,20 @@ export default function Home() {
 
       {/* Plan selection for new users */}
       {showPlanModal && (
-        <PlanModal onSelectFree={() => setShowPlanModal(false)} />
+        <PlanModal
+          onSelectFree={() => setShowPlanModal(false)}
+          userId={user?.id}
+          userEmail={user?.email}
+        />
       )}
 
       {showPaymentModal && (
-        <PaymentModal reason={paymentReason} onClose={() => setShowPaymentModal(false)} />
+        <PaymentModal
+          reason={paymentReason}
+          onClose={() => setShowPaymentModal(false)}
+          userId={user?.id}
+          userEmail={user?.email}
+        />
       )}
 
       {showAuthModal && (
