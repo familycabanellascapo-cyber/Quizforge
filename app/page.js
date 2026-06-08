@@ -170,9 +170,8 @@ export default function Home() {
       setProfile(p)
       fetchUploadCount(u.id)
 
-      // New user just signed in for the first time (created within last 10 min)
-      const isNew = (Date.now() - new Date(u.created_at).getTime()) < 10 * 60 * 1000
-      if (isNew && event === 'SIGNED_IN') {
+      // Show plan modal on every login
+      if (event === 'SIGNED_IN') {
         setShowPlanModal(true)
       }
 
