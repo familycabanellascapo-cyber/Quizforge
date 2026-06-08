@@ -210,7 +210,7 @@ export default function Home() {
       current = parseInt(localStorage.getItem('qf_uploads') || '0')
     }
 
-    if (!isUnlimited(profile) && current >= FREE_LIMIT) {
+    if (!isUnlimited(profile, user?.email) && current >= FREE_LIMIT) {
       triggerPayment('upload')
       return
     }
@@ -269,7 +269,7 @@ export default function Home() {
         user={user}
         onLoginClick={() => setShowAuthModal(true)}
         onSignOut={handleSignOut}
-        unlimited={isUnlimited(profile)}
+        unlimited={isUnlimited(profile, user?.email)}
       />
       <main>
         {screen === 'upload' && (
@@ -281,7 +281,7 @@ export default function Home() {
               difficulty={difficulty}
               onDifficultyChange={setDifficulty}
               onUpgradeClick={() => triggerPayment('upload')}
-              unlimited={isUnlimited(profile)}
+              unlimited={isUnlimited(profile, user?.email)}
             />
             {error && (
               <div style={{
@@ -302,8 +302,8 @@ export default function Home() {
         {screen === 'results' && data && (
           <div style={{ paddingTop: '80px' }}>
             {data.type === 'theory'
-              ? <TheoryResults data={data} onPaywall={() => triggerPayment('flashcard')} unlimited={isUnlimited(profile)} />
-              : <PracticalResults data={data} onPaywall={() => triggerPayment('flashcard')} unlimited={isUnlimited(profile)} />
+              ? <TheoryResults data={data} onPaywall={() => triggerPayment('flashcard')} unlimited={isUnlimited(profile, user?.email)} />
+              : <PracticalResults data={data} onPaywall={() => triggerPayment('flashcard')} unlimited={isUnlimited(profile, user?.email)} />
             }
             <div style={{ textAlign: 'center', paddingBottom: '48px' }}>
               <button
