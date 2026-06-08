@@ -6,7 +6,7 @@ import TheoryResults from '@/components/TheoryResults'
 import PracticalResults from '@/components/PracticalResults'
 import PaymentModal from '@/components/PaymentModal'
 import AuthModal from '@/components/AuthModal'
-import { supabase } from '@/lib/supabase'
+import { supabase, getUserProfile, isUnlimited } from '@/lib/supabase'
 
 const FREE_LIMIT = 3
 
@@ -71,7 +71,7 @@ function UserAvatar({ user, onSignOut }) {
   )
 }
 
-function Navbar({ uploadsUsed, onUpgradeClick, user, onLoginClick, onSignOut }) {
+function Navbar({ uploadsUsed, onUpgradeClick, user, onLoginClick, onSignOut, unlimited }) {
   const remaining = FREE_LIMIT - uploadsUsed
   return (
     <nav style={{
@@ -89,22 +89,37 @@ function Navbar({ uploadsUsed, onUpgradeClick, user, onLoginClick, onSignOut }) 
       }}>QuizForge</span>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-        <span style={{
-          fontSize: '12px', color: remaining > 0 ? 'var(--text-2)' : 'var(--red)',
-          fontFamily: 'DM Sans, sans-serif', whiteSpace: 'nowrap',
-        }}>
-          {uploadsUsed}/{FREE_LIMIT} PDFs
-        </span>
+        {unlimited ? (
+          <span style={{
+            fontSize: '12px', color: 'var(--green)',
+            fontFamily: 'DM Sans, sans-serif', whiteSpace: 'nowrap',
+          }}>∞ PDFs ilimitados</span>
+        ) : (
+          <span style={{
+            fontSize: '12px', color: remaining > 0 ? 'var(--text-2)' : 'var(--red)',
+            fontFamily: 'DM Sans, sans-serif', whiteSpace: 'nowrap',
+          }}>
+            {uploadsUsed}/{FREE_LIMIT} PDFs
+          </span>
+        )}
 
-        <button
-          onClick={onUpgradeClick}
-          style={{
-            background: 'rgba(123,94,167,0.15)', border: '1px solid rgba(167,139,218,0.28)',
+        {unlimited ? (
+          <span style={{
+            background: 'rgba(16,185,129,0.12)', border: '1px solid rgba(16,185,129,0.3)',
             borderRadius: '100px', padding: '4px 13px', fontSize: '12px',
-            color: 'var(--accent-bright)', fontFamily: 'DM Sans, sans-serif',
-            cursor: 'pointer', whiteSpace: 'nowrap',
-          }}
-        >✦ Premium</button>
+            color: 'var(--green)', fontFamily: 'DM Sans, sans-serif', whiteSpace: 'nowrap',
+          }}>👑 Admin</span>
+        ) : (
+          <button
+            onClick={onUpgradeClick}
+            style={{
+              background: 'rgba(123,94,167,0.15)', border: '1px solid rgba(167,139,218,0.28)',
+              borderRadius: '100px', padding: '4px 13px', fontSize: '12px',
+              color: 'var(--accent-bright)', fontFamily: 'DM Sans, sans-serif',
+              cursor: 'pointer', whiteSpace: 'nowrap',
+            }}
+          >✦ Premium</button>
+        )}
 
         {user ? (
           <UserAvatar user={user} onSignOut={onSignOut} />
@@ -135,28 +150,28 @@ export default function Home() {
   const [paymentReason, setPaymentReason] = useState('upload')
   const [difficulty, setDifficulty] = useState('medium')
   const [user, setUser] = useState(null)
+  const [profile, setProfile] = useState(null)
   const [authReady, setAuthReady] = useState(false)
+
+  async function loadUser(u) {
+    setUser(u)
+    if (u) {
+      const p = await getUserProfile(u.id)
+      setProfile(p)
+      fetchUploadCount(u.id)
+    } else {
+      setProfile(null)
+      setUploadsUsed(parseInt(localStorage.getItem('qf_uploads') || '0'))
+    }
+  }
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
-      const u = session?.user ?? null
-      setUser(u)
-      if (u) {
-        fetchUploadCount(u.id)
-      } else {
-        setUploadsUsed(parseInt(localStorage.getItem('qf_uploads') || '0'))
-      }
-      setAuthReady(true)
+      loadUser(session?.user ?? null).then(() => setAuthReady(true))
     })
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      const u = session?.user ?? null
-      setUser(u)
-      if (u) {
-        fetchUploadCount(u.id)
-      } else {
-        setUploadsUsed(parseInt(localStorage.getItem('qf_uploads') || '0'))
-      }
+      loadUser(session?.user ?? null)
     })
 
     return () => subscription.unsubscribe()
@@ -195,7 +210,7 @@ export default function Home() {
       current = parseInt(localStorage.getItem('qf_uploads') || '0')
     }
 
-    if (current >= FREE_LIMIT) {
+    if (!isUnlimited(profile) && current >= FREE_LIMIT) {
       triggerPayment('upload')
       return
     }
@@ -236,6 +251,7 @@ export default function Home() {
   async function handleSignOut() {
     await supabase.auth.signOut()
     setUser(null)
+    setProfile(null)
     setUploadsUsed(parseInt(localStorage.getItem('qf_uploads') || '0'))
   }
 
@@ -253,6 +269,7 @@ export default function Home() {
         user={user}
         onLoginClick={() => setShowAuthModal(true)}
         onSignOut={handleSignOut}
+        unlimited={isUnlimited(profile)}
       />
       <main>
         {screen === 'upload' && (

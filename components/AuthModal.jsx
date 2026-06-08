@@ -2,27 +2,47 @@
 import { useState } from 'react'
 import { supabase } from '@/lib/supabase'
 
+const PWD_RULES = [
+  { key: 'upper',   label: 'Una mayúscula (A-Z)',          test: (p) => /[A-Z]/.test(p) },
+  { key: 'lower',   label: 'Una minúscula (a-z)',           test: (p) => /[a-z]/.test(p) },
+  { key: 'number',  label: 'Un número (0-9)',               test: (p) => /[0-9]/.test(p) },
+  { key: 'special', label: 'Un carácter especial (!@#...)', test: (p) => /[!@#$%^&*()\-_=+\[\]{};:'",.<>/?\\|`~]/.test(p) },
+  { key: 'length',  label: 'Mínimo 8 caracteres',           test: (p) => p.length >= 8 },
+]
+
+function isPasswordValid(pwd) {
+  return PWD_RULES.every(r => r.test(pwd))
+}
+
 const inputStyle = {
   width: '100%', background: 'rgba(255,255,255,0.04)',
   border: '1px solid var(--border)', borderRadius: '10px',
   padding: '12px 14px', color: 'var(--text)', fontSize: '14px',
   fontFamily: 'DM Sans, sans-serif', outline: 'none',
-  transition: 'border-color 0.2s',
 }
 
 export default function AuthModal({ onClose, onAuthSuccess }) {
   const [mode, setMode] = useState('login')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [showPwd, setShowPwd] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [successMsg, setSuccessMsg] = useState('')
 
+  function switchMode(m) { setMode(m); setError(''); setSuccessMsg('') }
+
   async function handleSubmit(e) {
     e.preventDefault()
-    setLoading(true)
     setError('')
     setSuccessMsg('')
+
+    if (mode === 'register' && !isPasswordValid(password)) {
+      setError('La contraseña no cumple todos los requisitos.')
+      return
+    }
+
+    setLoading(true)
     try {
       if (mode === 'login') {
         const { data, error } = await supabase.auth.signInWithPassword({ email, password })
@@ -31,7 +51,8 @@ export default function AuthModal({ onClose, onAuthSuccess }) {
         onClose()
       } else {
         const { error } = await supabase.auth.signUp({
-          email, password,
+          email,
+          password,
           options: { emailRedirectTo: typeof window !== 'undefined' ? window.location.origin : '' },
         })
         if (error) throw error
@@ -40,7 +61,8 @@ export default function AuthModal({ onClose, onAuthSuccess }) {
     } catch (err) {
       const msg = err.message ?? ''
       if (msg.includes('Invalid login credentials')) setError('Email o contraseña incorrectos.')
-      else if (msg.includes('already registered')) setError('Este email ya está registrado. Inicia sesión.')
+      else if (msg.includes('already registered'))   setError('Este email ya está registrado.')
+      else if (msg.includes('Password should'))      setError('La contraseña no cumple los requisitos de seguridad.')
       else setError(msg)
     } finally {
       setLoading(false)
@@ -57,7 +79,8 @@ export default function AuthModal({ onClose, onAuthSuccess }) {
     if (error) { setError(error.message); setLoading(false) }
   }
 
-  function switchMode(m) { setMode(m); setError(''); setSuccessMsg('') }
+  const pwdChecks = PWD_RULES.map(r => ({ ...r, ok: password.length > 0 && r.test(password) }))
+  const showChecks = mode === 'register' && password.length > 0
 
   return (
     <div
@@ -73,14 +96,15 @@ export default function AuthModal({ onClose, onAuthSuccess }) {
         background: 'var(--surface)', border: '1px solid var(--border-bright)',
         borderRadius: '24px', maxWidth: '420px', width: '100%',
         padding: '36px 32px', position: 'relative',
+        maxHeight: '95vh', overflowY: 'auto',
       }}>
         <button
           onClick={onClose}
           style={{
             position: 'absolute', top: '16px', right: '16px',
             background: 'var(--card)', border: '1px solid var(--border)',
-            borderRadius: '8px', width: '32px', height: '32px',
-            cursor: 'pointer', color: 'var(--text-2)', fontSize: '18px',
+            borderRadius: '8px', width: '32px', height: '32px', cursor: 'pointer',
+            color: 'var(--text-2)', fontSize: '18px',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}
         >×</button>
@@ -99,8 +123,8 @@ export default function AuthModal({ onClose, onAuthSuccess }) {
 
         {/* Mode toggle */}
         <div style={{
-          display: 'flex', background: 'var(--card)', borderRadius: '10px',
-          padding: '4px', marginBottom: '24px',
+          display: 'flex', background: 'var(--card)',
+          borderRadius: '10px', padding: '4px', marginBottom: '24px',
         }}>
           {[['login', 'Iniciar sesión'], ['register', 'Registrarse']].map(([m, label]) => (
             <button key={m} onClick={() => switchMode(m)} style={{
@@ -120,11 +144,11 @@ export default function AuthModal({ onClose, onAuthSuccess }) {
           disabled={loading}
           style={{
             width: '100%', padding: '11px', borderRadius: '10px',
-            border: '1px solid var(--border)',
-            background: 'rgba(255,255,255,0.04)', cursor: 'pointer',
-            color: 'var(--text)', fontSize: '14px', fontFamily: 'DM Sans, sans-serif',
+            border: '1px solid var(--border)', background: 'rgba(255,255,255,0.04)',
+            cursor: 'pointer', color: 'var(--text)', fontSize: '14px',
+            fontFamily: 'DM Sans, sans-serif',
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px',
-            marginBottom: '18px', transition: 'background 0.2s',
+            marginBottom: '18px',
           }}
         >
           <svg width="18" height="18" viewBox="0 0 18 18">
@@ -144,13 +168,63 @@ export default function AuthModal({ onClose, onAuthSuccess }) {
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           <input
-            type="email" value={email} onChange={e => setEmail(e.target.value)}
-            placeholder="tucorreo@ejemplo.com" required style={inputStyle}
+            type="email" value={email}
+            onChange={e => setEmail(e.target.value)}
+            placeholder="tucorreo@ejemplo.com"
+            required
+            style={inputStyle}
           />
-          <input
-            type="password" value={password} onChange={e => setPassword(e.target.value)}
-            placeholder="Contraseña (mín. 6 caracteres)" required minLength={6} style={inputStyle}
-          />
+
+          {/* Password field with show/hide */}
+          <div style={{ position: 'relative' }}>
+            <input
+              type={showPwd ? 'text' : 'password'}
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              placeholder={mode === 'register' ? 'Contraseña segura' : 'Contraseña'}
+              required
+              style={{ ...inputStyle, paddingRight: '44px' }}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPwd(!showPwd)}
+              style={{
+                position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)',
+                background: 'none', border: 'none', cursor: 'pointer',
+                color: 'var(--text-3)', fontSize: '14px', padding: '4px',
+              }}
+            >{showPwd ? '🙈' : '👁'}</button>
+          </div>
+
+          {/* Password requirements checklist */}
+          {showChecks && (
+            <div style={{
+              background: 'rgba(20,20,37,0.8)', border: '1px solid var(--border)',
+              borderRadius: '10px', padding: '12px 14px',
+              display: 'flex', flexDirection: 'column', gap: '6px',
+              animation: 'fadeUp 0.2s ease both',
+            }}>
+              {pwdChecks.map(rule => (
+                <div key={rule.key} style={{
+                  display: 'flex', alignItems: 'center', gap: '8px',
+                  fontSize: '12px',
+                  color: rule.ok ? 'var(--green)' : 'var(--text-3)',
+                  transition: 'color 0.2s',
+                }}>
+                  <span style={{
+                    width: '16px', height: '16px', borderRadius: '50%', flexShrink: 0,
+                    background: rule.ok ? 'rgba(16,185,129,0.2)' : 'var(--border)',
+                    border: `1px solid ${rule.ok ? 'rgba(16,185,129,0.5)' : 'var(--border-bright)'}`,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: '9px', transition: 'all 0.2s',
+                  }}>
+                    {rule.ok ? '✓' : ''}
+                  </span>
+                  {rule.label}
+                </div>
+              ))}
+            </div>
+          )}
 
           {error && (
             <div style={{
@@ -169,14 +243,15 @@ export default function AuthModal({ onClose, onAuthSuccess }) {
 
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || (mode === 'register' && password.length > 0 && !isPasswordValid(password))}
             style={{
               background: 'linear-gradient(135deg, var(--accent), var(--accent-bright))',
               border: 'none', borderRadius: '10px', padding: '13px',
               color: 'white', fontSize: '14px', fontWeight: 500,
               fontFamily: 'DM Sans, sans-serif',
-              cursor: loading ? 'not-allowed' : 'pointer',
-              opacity: loading ? 0.7 : 1, transition: 'opacity 0.2s',
+              cursor: (loading || (mode === 'register' && password.length > 0 && !isPasswordValid(password))) ? 'not-allowed' : 'pointer',
+              opacity: (loading || (mode === 'register' && password.length > 0 && !isPasswordValid(password))) ? 0.6 : 1,
+              transition: 'opacity 0.2s',
               boxShadow: '0 4px 16px rgba(123,94,167,0.35)',
             }}
           >
@@ -188,7 +263,7 @@ export default function AuthModal({ onClose, onAuthSuccess }) {
           textAlign: 'center', color: 'var(--text-3)',
           fontSize: '12px', marginTop: '20px', lineHeight: 1.6,
         }}>
-          Al continuar aceptas los términos de uso · Tu historial se guarda en la nube
+          Tu historial se guarda de forma segura en la nube
         </p>
       </div>
     </div>
