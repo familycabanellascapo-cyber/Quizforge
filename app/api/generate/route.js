@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import OpenAI from 'openai'
-import pdfParse from 'pdf-parse'
+
+export const maxDuration = 60
 
 let openai = null
 function getOpenAI() {
@@ -166,6 +167,7 @@ export async function POST(request) {
 
     let pdfData
     try {
+      const pdfParse = (await import('pdf-parse')).default
       pdfData = await pdfParse(buffer)
     } catch {
       return NextResponse.json(
