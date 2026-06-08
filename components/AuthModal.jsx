@@ -21,7 +21,7 @@ const inputStyle = {
   fontFamily: 'DM Sans, sans-serif', outline: 'none',
 }
 
-export default function AuthModal({ onClose, onAuthSuccess }) {
+export default function AuthModal({ onClose, onAuthSuccess, pendingPayment }) {
   const [mode, setMode] = useState('login')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -120,6 +120,20 @@ export default function AuthModal({ onClose, onAuthSuccess }) {
             {mode === 'login' ? 'Bienvenido de vuelta 👋' : 'Crea tu cuenta gratis'}
           </p>
         </div>
+
+        {/* Paywall context banner */}
+        {pendingPayment && (
+          <div style={{
+            marginBottom: '20px', padding: '12px 16px',
+            background: 'rgba(123,94,167,0.1)', border: '1px solid rgba(167,139,218,0.3)',
+            borderRadius: '10px', fontSize: '13px', color: 'var(--accent-bright)',
+            lineHeight: 1.6, textAlign: 'center',
+          }}>
+            ✦ {mode === 'login'
+              ? 'Inicia sesión para ver los planes Premium y desbloquear todas las funciones.'
+              : 'Regístrate gratis para ver los planes Premium y guardar tu progreso.'}
+          </div>
+        )}
 
         {/* Mode toggle */}
         <div style={{

@@ -13,7 +13,9 @@ const practicalSubjects = [
 ]
 const DIFFICULTIES = ['Baja', 'Media', 'Alta']
 
-export default function UploadZone({ onUpload, uploadsUsed = 0, freeLimit = 3, difficulty, onDifficultyChange, onUpgradeClick, unlimited = false }) {
+const QUESTION_OPTIONS = [10, 15, 20, 25, 30]
+
+export default function UploadZone({ onUpload, uploadsUsed = 0, freeLimit = 3, difficulty, onDifficultyChange, questionCount = 10, onQuestionCountChange, onUpgradeClick, unlimited = false }) {
   const [dragging, setDragging] = useState(false)
   const [error, setError] = useState('')
   const [fileName, setFileName] = useState('')
@@ -151,6 +153,46 @@ export default function UploadZone({ onUpload, uploadsUsed = 0, freeLimit = 3, d
             >Actualizar →</button>
           </div>
         )}
+
+        {/* Question count selector */}
+        <div style={{ marginBottom: '28px', animation: 'fadeUp 0.6s ease 0.3s both' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px', justifyContent: 'center' }}>
+            <span style={{ color: 'var(--text-2)', fontSize: '13px' }}>Número de preguntas</span>
+            {!unlimited && (
+              <span style={{
+                background: 'rgba(232,168,56,0.1)', border: '1px solid rgba(232,168,56,0.25)',
+                borderRadius: '4px', padding: '2px 8px', fontSize: '11px', color: 'var(--gold)',
+              }}>🔒 Premium</span>
+            )}
+          </div>
+          {unlimited ? (
+            <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
+              {QUESTION_OPTIONS.map(n => (
+                <button
+                  key={n}
+                  onClick={() => onQuestionCountChange?.(n)}
+                  style={{
+                    padding: '8px 16px', borderRadius: '8px',
+                    background: questionCount === n ? 'var(--accent)' : 'var(--surface)',
+                    border: `1px solid ${questionCount === n ? 'var(--accent-bright)' : 'var(--border)'}`,
+                    color: questionCount === n ? 'white' : 'var(--text-2)',
+                    fontSize: '13px', cursor: 'pointer',
+                    fontFamily: 'DM Sans, sans-serif', transition: 'all 0.2s ease',
+                  }}
+                >{n}</button>
+              ))}
+            </div>
+          ) : (
+            <div style={{ display: 'flex', justifyContent: 'center' }}>
+              <div style={{
+                display: 'inline-flex', alignItems: 'center', gap: '8px',
+                background: 'var(--surface)', border: '1px solid var(--border)',
+                borderRadius: '8px', padding: '8px 20px',
+                color: 'var(--text-3)', fontSize: '13px', opacity: 0.7,
+              }}>10 preguntas — Plan Gratuito</div>
+            </div>
+          )}
+        </div>
 
         {/* Drop Zone */}
         <div style={{ animation: 'fadeUp 0.6s ease 0.3s both' }}>
